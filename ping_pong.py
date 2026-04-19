@@ -13,7 +13,7 @@ FPS = 60
 
 player_width = 250
 player_heigth = 80
-player_speed = 10
+player_speed = 7
 
 ball_size = 70
 ball_speed_x = 5
