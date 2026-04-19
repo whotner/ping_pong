@@ -112,9 +112,6 @@ while game:
             firstp_score += 1
             ball.reset_pos()
 
-        for i in range(0, win_height< 40):
-            draw.line(window, (255, 255, 255), (win_width // 2, y), (win_width // 2, y+20), 4)
-
         left_text = score_font.render(str(firstp_score), True, (255, 255, 255))
         right_text = score_font.render(str(secondp_score), True, (255, 255, 255))
         window.blit(left_text, (win_width // 4, 20))
