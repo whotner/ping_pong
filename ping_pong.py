@@ -39,6 +39,9 @@ class Player(GameSprite):
         self.up_key = up_key
         self.down_key = down_key
         self.image = transform.rotate(self.image, angle)
+        self.rect = self.image.get_rect()
+        self.rect.x = player_x
+        self.rect.y = player_y
 
     def update(self):
         keys = key.get_pressed()
