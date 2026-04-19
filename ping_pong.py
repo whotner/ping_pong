@@ -7,15 +7,15 @@ mixer.init()
 lost_font = font.SysFont("Arial", 36)
 score_font = font.SysFont("Arial", 36)
 
-win_width = 700
-win_height = 500
+win_width = 1000
+win_height = 700
 FPS = 60
 
 player_width = 250
 player_heigth = 80
-player_speed = 15
+player_speed = 10
 
-ball_size = 90
+ball_size = 70
 ball_speed_x = 5
 ball_speed_y = 5
 
@@ -89,12 +89,40 @@ while game:
     for e in event.get():
         if e.type == QUIT:
             game = False
-
-    window.blit(background, (0, 0))
     
-    first_player.reset()
-    second_player.reset()
-    ball.reset()
+    if not finish:
+        window.blit(background, (0, 0))   
+
+        first_player.update()
+        second_player.update()
+        ball.update()
+
+        if sprite.collide_rect(ball, first_player) and ball.dx < 0:
+            ball.bounce()
+            ball.rect.x = first_player.rect.x + first_player.rect.width
+        if sprite.collide_rect(ball, second_player) and ball.dx > 0:
+            ball.bounce()
+            ball.rect.x = second_player.rect.x - ball.rect.width
+
+        if ball.rect.x <= 0:
+            secondp_score += 1
+            ball.reset_pos()
+
+        if ball.rect.x >= win_width - ball.rect.width:
+            firstp_score += 1
+            ball.reset_pos()
+
+        for i in range(0, win_height< 40):
+            draw.line(window, (255, 255, 255), (win_width // 2, y), (win_width // 2, y+20), 4)
+
+        left_text = score_font.render(str(firstp_score), True, (255, 255, 255))
+        right_text = score_font.render(str(secondp_score), True, (255, 255, 255))
+        window.blit(left_text, (win_width // 4, 20))
+        window.blit(right_text, (3 * win_width // 4, 20))
+
+        first_player.reset()
+        second_player.reset()
+        ball.reset()
 
     clock.tick(FPS) 
     display.update()
