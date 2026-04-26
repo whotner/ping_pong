@@ -4,7 +4,7 @@ from random import *
 font.init()
 mixer.init()
 
-lost_font = font.SysFont("Arial", 36)
+win_font = font.SysFont("Arial", 36)
 score_font = font.SysFont("Arial", 36)
 
 win_width = 1000
@@ -18,6 +18,11 @@ player_speed = 7
 ball_size = 70
 ball_speed_x = 5
 ball_speed_y = 5
+
+bounce_sound = mixer.Sound('bounce.mp3')
+ez_sound = mixer.Sound('easy.mp3')
+burgers_sound = mixer.Sound('burgers.mp3')
+bounce_sound.set_volume(0.09)
 
 class GameSprite(sprite.Sprite):
     def __init__(self, player_image, player_x, player_y, width, height, speed):
@@ -66,6 +71,7 @@ class Ball(GameSprite):
 
     def bounce(self):
         self.dx = -self.dx
+        bounce_sound.play()
 
     def reset_pos(self):
         self.rect.centerx = win_width // 2
@@ -83,7 +89,7 @@ second_player = Player("awp2.png", win_width - 100 - player_speed, win_height //
 ball = Ball("gaben_ball.png", win_width //2 - ball_size // 2, win_height // 2 - ball_size // 2, ball_size, ball_speed_x, ball_speed_y)
 
 clock = time.Clock()
-firstp_score = 0
+firstp_score = 5
 secondp_score = 0
 
 game = True  
@@ -109,10 +115,12 @@ while game:
 
         if ball.rect.x <= 0:
             secondp_score += 1
+            ez_sound.play()
             ball.reset_pos()
 
         if ball.rect.x >= win_width - ball.rect.width:
             firstp_score += 1
+            burgers_sound.play()
             ball.reset_pos()
 
         left_text = score_font.render(str(firstp_score), True, (255, 255, 255))
