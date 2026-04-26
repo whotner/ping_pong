@@ -89,7 +89,7 @@ second_player = Player("awp2.png", win_width - 100 - player_speed, win_height //
 ball = Ball("gaben_ball.png", win_width //2 - ball_size // 2, win_height // 2 - ball_size // 2, ball_size, ball_speed_x, ball_speed_y)
 
 clock = time.Clock()
-firstp_score = 5
+firstp_score = 0
 secondp_score = 0
 
 game = True  
