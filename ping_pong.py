@@ -11,11 +11,11 @@ win_width = 1000
 win_height = 700
 FPS = 60
 
-player_width = 250
-player_heigth = 80
+player_width = 220
+player_heigth = 70
 player_speed = 7
 
-ball_size = 70
+ball_size = 50
 ball_speed_x = 5
 ball_speed_y = 5
 
@@ -23,6 +23,10 @@ bounce_sound = mixer.Sound('bounce.mp3')
 ez_sound = mixer.Sound('easy.mp3')
 burgers_sound = mixer.Sound('burgers.mp3')
 bounce_sound.set_volume(0.09)
+
+MODE_TWO_PLAYERS = 1
+MODE_VS_BOT = 2
+MODE_SCORE = 3
 
 class GameSprite(sprite.Sprite):
     def __init__(self, player_image, player_x, player_y, width, height, speed):
@@ -56,6 +60,16 @@ class Player(GameSprite):
         if keys [self.down_key] and self.rect.y < win_height - self.rect.height:
             self.rect.y += self.speed
 
+class Bot(Player):
+    def __init__(self, player_image, player_x, player_y, width, height, speed):
+        super().__init__(player_image, player_x, player_y, width, height, speed, None, None)
+
+    def update(self):
+        if ball.rect.centery < self.rect.centery and self.rect.y > 0:
+            self.rect.y -= self.speed
+        elif ball.rect.centery > self.rect.centery and self.rect.y < win_height - self.rect.height:
+            self.rect.y += self.speed
+
 class Ball(GameSprite):
     def __init__(self, player_image, player_x, player_y, size, speed_x, speed_y):
         super().__init__(player_image, player_x, player_y, size, size, 0)
@@ -79,6 +93,14 @@ class Ball(GameSprite):
         self.dx = ball_speed_x if self.dx > 0 else -ball_speed_x
         self.dy = ball_speed_y if randint(0, 1) else -ball_speed_y
 
+def get_mode_name(mode):
+    if mode == MODE_TWO_PLAYERS:
+        return "Two Players"
+    if mode == MODE_VS_BOT:
+        return "Vs Bot"
+    if mode == MODE_SCORE:
+        return "Score Mode"
+
 window = display.set_mode((win_width, win_height))
 display.set_caption('Ping Pong')
 
@@ -86,24 +108,41 @@ background = transform.scale(image.load('midl.png'), (win_width, win_height))
 
 first_player = Player("awp.png", 30, win_height // 2 - player_heigth // 2, player_width, player_heigth, player_speed, K_w, K_s, angle=-90)
 second_player = Player("awp2.png", win_width - 100 - player_speed, win_height // 2 - player_heigth // 2, player_width, player_heigth, player_speed, K_UP, K_DOWN, angle=90)
-ball = Ball("gaben_ball.png", win_width //2 - ball_size // 2, win_height // 2 - ball_size // 2, ball_size, ball_speed_x, ball_speed_y)
+ball = Ball("gaben_ball.png", win_width // 2 - ball_size // 2, win_height // 2 - ball_size // 2, ball_size, ball_speed_x, ball_speed_y)
 
 clock = time.Clock()
 firstp_score = 0
 secondp_score = 0
 
+game_mode = MODE_TWO_PLAYERS
 game = True  
 finish = False
+round_active = True
 while game:
     for e in event.get():
         if e.type == QUIT:
             game = False
+        if e.type == KEYDOWN:
+            if e.key == K_1:
+                mode = MODE_TWO_PLAYERS
+                round_active = False
+            if e.key == K_2:
+                mode = MODE_VS_BOT
+                round_active = False
+            if e.key == K_3:
+                mode = MODE_SCORE
+                round_active = False
+            if e.key == K_r:
+                round_active = False
     
     if not finish:
         window.blit(background, (0, 0))   
 
         first_player.update()
-        second_player.update()
+        if game_mode == MODE_VS_BOT:
+            second_player.update(ball)
+        else:
+            second_player.update()
         ball.update()
 
         if sprite.collide_rect(ball, first_player) and ball.dx < 0:
