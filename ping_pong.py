@@ -69,12 +69,16 @@ class Bot(GameSprite):
         self.rect = self.image.get_rect()
         self.rect.x = player_x
         self.rect.y = player_y
+        self.target_y = player_y
 
     def update(self):
-        if self.ball.rect.centery < self.rect.centery and self.rect.y > 0:
-            self.rect.y -= self.speed
-        elif self.ball.rect.centery > self.rect.centery and self.rect.y < win_height - self.rect.height:
-            self.rect.y += self.speed
+        center_offset = self.ball.rect.centery - self.rect.centery
+        
+        if abs(center_offset) > 15:
+            if center_offset < 0 and self.rect.y > 0:
+                self.rect.y -= self.speed
+            elif center_offset > 0 and self.rect.y < win_height - self.rect.height:
+                self.rect.y += self.speed
 
 class Ball(GameSprite):
     def __init__(self, player_image, player_x, player_y, size, speed_x, speed_y):
@@ -149,8 +153,6 @@ while game:
             if e.key == K_3:
                 game_mode = MODE_SCORE
                 reset_game()
-            if e.key == K_r and not round_active:
-                round_active = True
     
     if round_active:
         window.blit(background, (0, 0))   
@@ -203,7 +205,7 @@ while game:
                 winner_text = win_font.render("Player 2 WINS!", True, (255, 100, 100))
             window.blit(winner_text, (win_width // 2 - winner_text.get_width() // 2, 250))
         
-        restart_text = score_font.render("Press 1/2/3 to change mode", True, (255, 255, 255))
+        restart_text = score_font.render("Press 1/2/3 to continue", True, (255, 255, 255))
         window.blit(restart_text, (win_width // 2 - restart_text.get_width() // 2, 350))
 
     clock.tick(FPS) 
