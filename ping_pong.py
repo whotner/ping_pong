@@ -27,6 +27,7 @@ bounce_sound.set_volume(0.09)
 MODE_TWO_PLAYERS = 1
 MODE_VS_BOT = 2
 MODE_SCORE = 3
+SCORE_LIMIT = 10
 
 class GameSprite(sprite.Sprite):
     def __init__(self, player_image, player_x, player_y, width, height, speed):
@@ -57,17 +58,22 @@ class Player(GameSprite):
 
         if keys[self.up_key] and self.rect.y > 0:
             self.rect.y -= self.speed
-        if keys [self.down_key] and self.rect.y < win_height - self.rect.height:
+        if keys[self.down_key] and self.rect.y < win_height - self.rect.height:
             self.rect.y += self.speed
 
-class Bot(Player):
-    def __init__(self, player_image, player_x, player_y, width, height, speed):
-        super().__init__(player_image, player_x, player_y, width, height, speed, None, None)
+class Bot(GameSprite):
+    def __init__(self, player_image, player_x, player_y, width, height, speed, ball_ref, angle=0):
+        super().__init__(player_image, player_x, player_y, width, height, speed)
+        self.ball = ball_ref
+        self.image = transform.rotate(self.image, angle)
+        self.rect = self.image.get_rect()
+        self.rect.x = player_x
+        self.rect.y = player_y
 
     def update(self):
-        if ball.rect.centery < self.rect.centery and self.rect.y > 0:
+        if self.ball.rect.centery < self.rect.centery and self.rect.y > 0:
             self.rect.y -= self.speed
-        elif ball.rect.centery > self.rect.centery and self.rect.y < win_height - self.rect.height:
+        elif self.ball.rect.centery > self.rect.centery and self.rect.y < win_height - self.rect.height:
             self.rect.y += self.speed
 
 class Ball(GameSprite):
@@ -99,7 +105,18 @@ def get_mode_name(mode):
     if mode == MODE_VS_BOT:
         return "Vs Bot"
     if mode == MODE_SCORE:
-        return "Score Mode"
+        return f"Score Mode (до {SCORE_LIMIT})"
+
+def reset_game():
+    global firstp_score, secondp_score, second_player, round_active
+    firstp_score = 0
+    secondp_score = 0
+    round_active = True
+    
+    if game_mode == MODE_VS_BOT:
+        second_player = Bot("awp2.png", win_width - 100 - player_speed, win_height // 2 - player_heigth // 2, player_width, player_heigth, player_speed, ball, angle=90)
+    else:
+        second_player = Player("awp2.png", win_width - 100 - player_speed, win_height // 2 - player_heigth // 2, player_width, player_heigth, player_speed, K_UP, K_DOWN, angle=90)
 
 window = display.set_mode((win_width, win_height))
 display.set_caption('Ping Pong')
@@ -116,33 +133,30 @@ secondp_score = 0
 
 game_mode = MODE_TWO_PLAYERS
 game = True  
-finish = False
 round_active = True
+
 while game:
     for e in event.get():
         if e.type == QUIT:
             game = False
         if e.type == KEYDOWN:
             if e.key == K_1:
-                mode = MODE_TWO_PLAYERS
-                round_active = False
+                game_mode = MODE_TWO_PLAYERS
+                reset_game()
             if e.key == K_2:
-                mode = MODE_VS_BOT
-                round_active = False
+                game_mode = MODE_VS_BOT
+                reset_game()
             if e.key == K_3:
-                mode = MODE_SCORE
-                round_active = False
-            if e.key == K_r:
-                round_active = False
+                game_mode = MODE_SCORE
+                reset_game()
+            if e.key == K_r and not round_active:
+                round_active = True
     
-    if not finish:
+    if round_active:
         window.blit(background, (0, 0))   
 
         first_player.update()
-        if game_mode == MODE_VS_BOT:
-            second_player.update(ball)
-        else:
-            second_player.update()
+        second_player.update()
         ball.update()
 
         if sprite.collide_rect(ball, first_player) and ball.dx < 0:
@@ -164,12 +178,33 @@ while game:
 
         left_text = score_font.render(str(firstp_score), True, (255, 255, 255))
         right_text = score_font.render(str(secondp_score), True, (255, 255, 255))
+        mode_text = score_font.render(get_mode_name(game_mode), True, (255, 255, 255))
+        
         window.blit(left_text, (win_width // 4, 20))
         window.blit(right_text, (3 * win_width // 4, 20))
+        window.blit(mode_text, (win_width // 2 - mode_text.get_width() // 2, 20))
 
         first_player.reset()
         second_player.reset()
         ball.reset()
+
+        if game_mode == MODE_SCORE:
+            if firstp_score >= SCORE_LIMIT:
+                round_active = False
+            elif secondp_score >= SCORE_LIMIT:
+                round_active = False
+    
+    else:
+        window.blit(background, (0, 0))
+        if game_mode == MODE_SCORE:
+            if firstp_score >= SCORE_LIMIT:
+                winner_text = win_font.render("Player 1 WINS!", True, (255, 100, 100))
+            else:
+                winner_text = win_font.render("Player 2 WINS!", True, (255, 100, 100))
+            window.blit(winner_text, (win_width // 2 - winner_text.get_width() // 2, 250))
+        
+        restart_text = score_font.render("Press 1/2/3 to change mode", True, (255, 255, 255))
+        window.blit(restart_text, (win_width // 2 - restart_text.get_width() // 2, 350))
 
     clock.tick(FPS) 
     display.update()
